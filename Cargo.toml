@@ -21,8 +21,6 @@ ark-pallas = "0.4.0"
 ark-vesta = "0.4.0"
 ark-secp256k1 = "0.4.0"
 
-hex = "0.4.3"
-ascii_converter = "0.3.0"
 num-traits = "0.2.16"
 
 [lib]

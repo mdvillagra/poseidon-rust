@@ -12,8 +12,13 @@ use core::str;
 use num_bigint::BigInt;
 use num_traits::Num;
 
-fn init_state(state: &mut Vec<Fq>) {
 
+
+
+pub fn init_state(state: &mut Vec<Fq>, t: u32) {
+    for _i in [0..t] {
+        state.push(Field::ZERO);
+    }
 }
 
 
