@@ -5,11 +5,15 @@ use ark_ff::{Field, PrimeField, FpConfig, BigInteger};
 use ark_bls12_381::{Fq, FrConfig};
 use ark_std::{One, Zero, UniformRand};
 
+use num_bigint::BigInt;
+use num_traits::Num;
+
 fn main() {
+  
   let constants = poseidon_lib::read_constants("constants2.txt");
 
   let mut state: Vec<Fq> = Vec::new();
-  poseidon_lib::init_state(&mut state, 1);
+  poseidon_lib::init_state(&mut state, 2);
 
   println!("Number of round constants {}", constants.c.len());
   let modulus = <Fq as PrimeField>::MODULUS;
