@@ -3,8 +3,8 @@ use std::io::BufReader;
 use std::io::prelude::*;
 
 
-//use ark_ff::BigInt;
-use ark_ff::{Field, PrimeField, FpConfig, BigInteger};
+use ark_ff::BigInt as arkBigInt;
+use ark_ff::{PrimeField, FpConfig, BigInteger};
 use ark_bls12_381::Fq;
 use ark_std::str::FromStr;
 use core::str;
@@ -14,17 +14,37 @@ use num_traits::Num;
 
 pub struct Constants<T:PrimeField> {
     pub c: Vec<T>,//round constants
-    pub m: Vec<Vec<T>>//MDS matrix
+    pub m: Vec<Vec<T>>, //MDS matrix
+    pub t: u32, //width of the sponge
+    pub partial_rounds: u32, //number of partial rounds
+    pub full_rounds: u32, //number of full rounds
+    pub alpha: u32, //power of the S-box
+}
+
+/*********************************************************
+Executes the S-box stage
+Computes for each element in the state x^alpha
+*********************************************************/
+pub fn sbox<T: PrimeField>(state: &mut Vec<T>, constants: Constants<T>, full: bool) {
+        if full {
+            for i in 0..state.len() {
+                let p: arkBigInt<1> = arkBigInt::from(constants.alpha);
+                state[i] = state[i].pow(p);
+            }
+         } else {
+            let p: arkBigInt<1> = arkBigInt::from(constants.alpha);
+            state[0] = state[0].pow(p);
+         }
 }
 
 /*********************************************************
 Executes the ARK stage. Deletes each round constant
 that gets multiplied.
 *********************************************************/
-pub fn ark<T: PrimeField>(state: &mut Vec<T>, c: &mut Vec<T>) {
+pub fn ark<T: PrimeField>(state: &mut Vec<T>, constants: &mut Constants<T>) {
     for i in 0..state.len() {
-        state[i] *= c[0];
-        c.remove(0);
+        state[i].add_assign(constants.c[0]);
+        constants.c.remove(0);
     }
 }
 
@@ -68,6 +88,7 @@ pub fn read_constants(file_name: &str) -> Constants<Fq>{
     
             let constants: Vec<&str> = rconst.split(',').collect();
             for constant in constants {
+                //all constants in the file are writen in hex and need to be converted to dec
                 let n = BigInt::from_str_radix(&constant[2..], 16).unwrap();
                 let number: Fq = Fq::from_str(&n.to_string()).unwrap();
                 c.push(number);
@@ -89,6 +110,7 @@ pub fn read_constants(file_name: &str) -> Constants<Fq>{
                 let rows_vector: Vec<&str> = r.split(",").collect();
                 let mut mi: Vec<Fq> = Vec::new();
                 for r2 in rows_vector {
+                    //all constants in the file are writen in hex and need to be converted to dec
                     let n2 = BigInt::from_str_radix(&r2[2..], 16).unwrap();
                     let v2: Fq = Fq::from_str(&n2.to_string()).unwrap();
                     mi.push(v2);
@@ -100,6 +122,6 @@ pub fn read_constants(file_name: &str) -> Constants<Fq>{
         i += 1;
     }
    
-    Constants {c,m}
+    Constants {c,m, t :5, partial_rounds: 60, full_rounds: 8, alpha: 5}
 
 }
