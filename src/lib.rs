@@ -4,20 +4,46 @@ use std::io::BufReader;
 
 use ark_bls12_381::Fq;
 use ark_ff::BigInt as arkBigInt;
-use ark_ff::{BigInteger, FpConfig, PrimeField};
+use ark_ff::PrimeField;
 use ark_std::str::FromStr;
 use core::str;
 
 use num_bigint::BigInt;
 use num_traits::Num;
 
+#[derive(Clone)]
 pub struct Constants<T: PrimeField> {
     pub c: Vec<T>,           //round constants
     pub m: Vec<Vec<T>>,      //MDS matrix
     pub t: usize,            //width of the state
     pub partial_rounds: u32, //number of partial rounds
     pub full_rounds: u32,    //number of full rounds
-    pub alpha: u32,          //power of the S-box
+    pub alpha: u32,          //exponent of the S-box
+}
+
+/*********************************************************
+Implements the poseidon permutation
+*********************************************************/
+pub fn poseidon_permutation<T: PrimeField>(state: Vec<T>, constants: &mut Constants<T>) -> Vec<T> {
+    let mut new_state = state.to_vec();
+
+    for _i in 0..constants.full_rounds {
+        ark(&mut new_state, constants);
+        sbox(&mut new_state, constants.clone(), true);
+        linear_layer(&mut new_state, constants.clone());
+    }
+    for _i in 0..constants.partial_rounds {
+        ark(&mut new_state, constants);
+        sbox(&mut new_state, constants.clone(), false);
+        linear_layer(&mut new_state, constants.clone());
+    }
+    for _i in 0..constants.full_rounds {
+        ark(&mut new_state, constants);
+        sbox(&mut new_state, constants.clone(), true);
+        linear_layer(&mut new_state, constants.clone());
+    }
+
+    new_state
 }
 
 /*********************************************************
