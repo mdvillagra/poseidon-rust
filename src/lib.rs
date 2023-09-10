@@ -32,7 +32,7 @@ pub fn pad<T: PrimeField>(input: Vec<T>, r: u32) -> Vec<T> {
 
     if input.len() as u32 % r != 0 {
         let padding_size = input.len() as u32 / r * r + r - input.len() as u32;
-        let mut zeroes: Vec<T> = Vec::new();
+        let zeroes: Vec<T>;
         if padding_size >= 2 {
             zeroes = vec![T::ZERO; padding_size as usize];
         } else {
