@@ -22,7 +22,30 @@ pub struct Constants<T: PrimeField> {
 }
 
 /*********************************************************
-Implements the poseidon permutation
+Padding function for an input vector.
+The functions pads input with 0s and returns a vector
+that is a multiple of r. If the length of the input is a
+multiple of r, then no padding takes place.
+*********************************************************/
+pub fn pad<T: PrimeField>(input: Vec<T>, r: u32) -> Vec<T> {
+    let mut padded_input: Vec<T> = input.to_vec();
+
+    if input.len() as u32 % r != 0 {
+        let padding_size = input.len() as u32 / r * r + r - input.len() as u32;
+        let mut zeroes: Vec<T> = Vec::new();
+        if padding_size >= 2 {
+            zeroes = vec![T::ZERO; padding_size as usize];
+        } else {
+            zeroes = vec![T::ZERO; padding_size as usize + r as usize];
+        }
+        padded_input.extend(zeroes);
+    }
+
+    padded_input
+}
+
+/*********************************************************
+Implements the poseidon permutation.
 *********************************************************/
 pub fn poseidon_permutation<T: PrimeField>(state: Vec<T>, constants: &mut Constants<T>) -> Vec<T> {
     let mut new_state = state.to_vec();
@@ -50,7 +73,7 @@ pub fn poseidon_permutation<T: PrimeField>(state: Vec<T>, constants: &mut Consta
 Executes de linear layer.
 Multiplies the MDS matrix times the state
 *********************************************************/
-pub fn linear_layer<T: PrimeField>(state: &mut Vec<T>, constants: Constants<T>) {
+fn linear_layer<T: PrimeField>(state: &mut Vec<T>, constants: Constants<T>) {
     let mut result: Vec<T> = Vec::new();
     init_state(&mut result, constants.t);
 
@@ -66,7 +89,7 @@ pub fn linear_layer<T: PrimeField>(state: &mut Vec<T>, constants: Constants<T>) 
 Executes the S-box stage
 Computes for each element in the state x^alpha
 *********************************************************/
-pub fn sbox<T: PrimeField>(state: &mut Vec<T>, constants: Constants<T>, full: bool) {
+fn sbox<T: PrimeField>(state: &mut Vec<T>, constants: Constants<T>, full: bool) {
     if full {
         // apply full s-box
         for i in 0..state.len() {
@@ -84,7 +107,7 @@ pub fn sbox<T: PrimeField>(state: &mut Vec<T>, constants: Constants<T>, full: bo
 Executes the ARK stage. Deletes each round constant
 that gets multiplied.
 *********************************************************/
-pub fn ark<T: PrimeField>(state: &mut Vec<T>, constants: &mut Constants<T>) {
+fn ark<T: PrimeField>(state: &mut Vec<T>, constants: &mut Constants<T>) {
     for i in 0..state.len() {
         state[i].add_assign(constants.c[0]);
         constants.c.remove(0);
@@ -94,7 +117,7 @@ pub fn ark<T: PrimeField>(state: &mut Vec<T>, constants: &mut Constants<T>) {
 /*********************************************************
 Initialize a state vector
 **********************************************************/
-pub fn init_state<T: PrimeField>(state: &mut Vec<T>, t: usize) {
+fn init_state<T: PrimeField>(state: &mut Vec<T>, t: usize) {
     state.clear();
     for _i in 0..t {
         state.push(T::ZERO);
@@ -170,7 +193,6 @@ pub fn read_constants_bls12381() -> Constants<Fbls12_381> {
     }
 }
 
-
 /********************************************************
 Tests
  *********************************************************/
@@ -180,12 +202,12 @@ mod poseidon_permutation {
     use ark_std::UniformRand;
 
     #[test]
-    fn ark_test(){
+    fn ark_test() {
         let mut constants = read_constants_bls12381();
         let mut state: Vec<Fbls12_381> = Vec::new();
         let mut result: Vec<Fbls12_381> = Vec::new();
         let mut rng = ark_std::test_rng();
-        
+
         constants.c.clear();
 
         for i in 0..constants.t {
@@ -195,7 +217,6 @@ mod poseidon_permutation {
         }
 
         ark(&mut state, &mut constants);
-        assert_eq!(state,result);
+        assert_eq!(state, result);
     }
 }
-
