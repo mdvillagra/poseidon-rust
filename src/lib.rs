@@ -11,7 +11,7 @@ use core::str;
 use num_bigint::BigInt;
 use num_traits::Num;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Constants<T: PrimeField> {
     pub c: Vec<T>,           //round constants
     pub m: Vec<Vec<T>>,      //MDS matrix
@@ -125,7 +125,9 @@ https://extgit.iaik.tugraz.at/krypto/hadeshash/-/blob/master/code/generate_param
  *********************************************************/
 pub fn read_constants_bls12381() -> Constants<Fbls12_381> {
     /*
-    # GF(p), alpha=5, N = 1275, n = 255, t = 5, R_F = 8, R_P = 60: sage generate_parameters_grain.sage 1 0 255 5 8 60 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
+    Params: n=255, t=5, alpha=5, M=128, R_F=8, R_P=56
+    Modulus = 52435875175126190479447740508185965837690552500527637822603658699938581184513
+    Number of round constants: 320
      */
     let file = File::open("bls12_381_constants.txt").expect("file not found");
     let reader = BufReader::new(file);
@@ -136,8 +138,8 @@ pub fn read_constants_bls12381() -> Constants<Fbls12_381> {
     let mut i = 0;
 
     for line in reader.lines() {
-        // line 2 contains the round constants
-        if i == 2 {
+        // line 5 contains the round constants
+        if i == 5 {
             let mut rconst: String = line.unwrap().replace(" ", "").replace("'", "");
             rconst.pop();
             rconst.remove(0);
@@ -151,8 +153,8 @@ pub fn read_constants_bls12381() -> Constants<Fbls12_381> {
             }
             i += 1;
         }
-        // line 15 contains the mds matrix
-        else if i == 15 {
+        // line 18 contains the mds matrix
+        else if i == 18 {
             let mut mds = line.unwrap().replace(" ", "").replace("'", "");
             mds.pop();
             mds.pop();
@@ -180,7 +182,7 @@ pub fn read_constants_bls12381() -> Constants<Fbls12_381> {
         c,
         m,
         t: 5,
-        partial_rounds: 60,
+        partial_rounds: 56,
         full_rounds: 8,
         alpha: 5,
     }
@@ -193,6 +195,17 @@ Tests
 mod poseidon_permutation {
     use crate::*;
     use ark_std::UniformRand;
+
+    #[test]
+    fn read_constants_files() {
+        let constant = read_constants_bls12381();
+        assert_eq!(
+            (constant.partial_rounds + constant.full_rounds) * constant.t as u32,
+            constant.c.len() as u32
+        );
+        assert_eq!(5, constant.m.len());
+        assert_eq!(5, constant.m[0].len());
+    }
 
     #[test]
     fn padd_test() {
