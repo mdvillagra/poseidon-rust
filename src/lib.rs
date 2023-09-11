@@ -27,18 +27,11 @@ The functions pads input with 0s and returns a vector
 that is a multiple of r. If the length of the input is a
 multiple of r, then no padding takes place.
 *********************************************************/
-pub fn pad<T: PrimeField>(input: Vec<T>, r: u32) -> Vec<T> {
+pub fn pad<T: PrimeField>(input: &Vec<T>, r: u32) -> Vec<T> {
     let mut padded_input: Vec<T> = input.to_vec();
 
-    if input.len() as u32 % r != 0 {
-        let padding_size = input.len() as u32 / r * r + r - input.len() as u32;
-        let zeroes: Vec<T>;
-        if padding_size >= 2 {
-            zeroes = vec![T::ZERO; padding_size as usize];
-        } else {
-            zeroes = vec![T::ZERO; padding_size as usize + r as usize];
-        }
-        padded_input.extend(zeroes);
+    while padded_input.len() as u32 % r != 0 {
+        padded_input.push(T::ZERO);
     }
 
     padded_input
@@ -200,6 +193,24 @@ Tests
 mod poseidon_permutation {
     use crate::*;
     use ark_std::UniformRand;
+
+    #[test]
+    fn padd_test() {
+        let state: Vec<Fbls12_381> = vec![
+            Fbls12_381::from(1),
+            Fbls12_381::from(2),
+            Fbls12_381::from(3),
+            Fbls12_381::from(4),
+            Fbls12_381::from(5),
+            Fbls12_381::from(6),
+            Fbls12_381::from(7),
+            Fbls12_381::from(8),
+        ];
+
+        let new_state = pad(&state, 3);
+
+        assert_eq!(new_state.len(), 9);
+    }
 
     #[test]
     fn ark_test() {
