@@ -22,9 +22,23 @@ pub struct Constants<T: PrimeField> {
 }
 
 /*********************************************************
+Hashing function
+*********************************************************/
+pub fn hash<T: PrimeField>(
+    input: &Vec<T>,
+    constants: &Constants<T>,
+    output_length: u32,
+    r: usize,
+) -> Vec<T> {
+    let mut state = absorb(input, constants, r);
+    let output = squeeze(&mut state, constants, output_length, r);
+    output.clone()
+}
+
+/*********************************************************
 Squeezing stage
 *********************************************************/
-pub fn squeeze<T: PrimeField>(
+fn squeeze<T: PrimeField>(
     state: &mut Vec<T>,
     constants: &Constants<T>,
     output_length: u32,
@@ -45,7 +59,7 @@ pub fn squeeze<T: PrimeField>(
 /*********************************************************
 Absorbing stage
 *********************************************************/
-pub fn absorb<T: PrimeField>(input: &Vec<T>, constants: &Constants<T>, r: usize) -> Vec<T> {
+fn absorb<T: PrimeField>(input: &Vec<T>, constants: &Constants<T>, r: usize) -> Vec<T> {
     let mut state: Vec<T> = Vec::new();
     let padded_input = pad(input, r as u32);
 
