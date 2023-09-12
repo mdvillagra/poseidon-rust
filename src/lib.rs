@@ -21,6 +21,7 @@ pub struct Constants<T: PrimeField> {
     pub alpha: u32,          //exponent of the S-box
 }
 
+
 /*********************************************************
 Hashing function
 *********************************************************/
@@ -50,8 +51,14 @@ fn squeeze<T: PrimeField>(
         output.extend_from_slice(&state[..r]);
         poseidon_permutation(state, constants);
     }
-    while output.len() as u32 % output_length != 0 {
-        output.pop();
+    if output_length > 1{
+        while output.len() as u32 % output_length != 0 {
+            output.pop();
+        }
+    } else {
+        while (output.len() as u32) > 1 {
+            output.pop();
+        }
     }
     output.clone()
 }
