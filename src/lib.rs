@@ -1,8 +1,10 @@
 pub mod read_constants;
-
 use read_constants::*;
 
-use ark_bls12_381::Fq as Fbls12_381;
+use ark_bls12_381::Fq as Fqbls12_381;
+use ark_bls12_381::Fr as Frbls12_381;
+use ark_bls12_381::Fq as Fqbls12_377;
+use ark_bls12_377::Fr as Frbls12_377;
 use ark_ff::BigInt as arkBigInt;
 use ark_ff::PrimeField;
 
@@ -166,7 +168,7 @@ mod poseidon_permutation {
 
     #[test]
     fn read_constants_files() {
-        let constant = read_constants_bls12381_n255_t5_alpha5_M128_RF8_RP56();
+        let constant = read_constants_bls12381_Fq_n255_t5_alpha5_M128_RF8_RP56();
         assert_eq!(
             (constant.partial_rounds + constant.full_rounds) * constant.t as u32,
             constant.c.len() as u32
@@ -177,15 +179,15 @@ mod poseidon_permutation {
 
     #[test]
     fn padd_test() {
-        let state: Vec<Fbls12_381> = vec![
-            Fbls12_381::from(1),
-            Fbls12_381::from(2),
-            Fbls12_381::from(3),
-            Fbls12_381::from(4),
-            Fbls12_381::from(5),
-            Fbls12_381::from(6),
-            Fbls12_381::from(7),
-            Fbls12_381::from(8),
+        let state: Vec<Frbls12_381> = vec![
+            Frbls12_381::from(1),
+            Frbls12_381::from(2),
+            Frbls12_381::from(3),
+            Frbls12_381::from(4),
+            Frbls12_381::from(5),
+            Frbls12_381::from(6),
+            Frbls12_381::from(7),
+            Frbls12_381::from(8),
         ];
 
         let new_state = pad(&state, 3);
@@ -195,16 +197,16 @@ mod poseidon_permutation {
 
     #[test]
     fn ark_test() {
-        let mut constants = read_constants_bls12381_n255_t5_alpha5_M128_RF8_RP56();
-        let mut state: Vec<Fbls12_381> = Vec::new();
-        let mut result: Vec<Fbls12_381> = Vec::new();
+        let mut constants = read_constants_bls12381_Fq_n255_t5_alpha5_M128_RF8_RP56();
+        let mut state: Vec<Fqbls12_381> = Vec::new();
+        let mut result: Vec<Fqbls12_381> = Vec::new();
         let mut rng = ark_std::test_rng();
 
         constants.c.clear();
 
         for i in 0..constants.t {
-            state.push(Fbls12_381::rand(&mut rng));
-            constants.c.push(Fbls12_381::rand(&mut rng));
+            state.push(Fqbls12_381::rand(&mut rng));
+            constants.c.push(Fqbls12_381::rand(&mut rng));
             result.push(state[i] + constants.c[i]);
         }
 
