@@ -1,12 +1,7 @@
 pub mod read_constants;
-use read_constants::*;
-
-use ark_bls12_381::Fq as Fqbls12_381;
-use ark_bls12_381::Fr as Frbls12_381;
-use ark_bls12_381::Fq as Fqbls12_377;
-use ark_bls12_377::Fr as Frbls12_377;
 use ark_ff::BigInt as arkBigInt;
 use ark_ff::PrimeField;
+use read_constants::*;
 
 /*********************************************************
 Hashing function
@@ -164,11 +159,12 @@ Tests
 #[cfg(test)]
 mod poseidon_permutation {
     use crate::*;
+    use ark_bls12_381::Fr as Frbls12_381;
     use ark_std::UniformRand;
 
     #[test]
     fn read_constants_files() {
-        let constant = read_constants_bls12381_Fq_n255_t5_alpha5_M128_RF8_RP56();
+        let constant = read_constants_bls12381_Fr_n255_t5_alpha5_M128_RF8_RP56();
         assert_eq!(
             (constant.partial_rounds + constant.full_rounds) * constant.t as u32,
             constant.c.len() as u32
@@ -197,16 +193,16 @@ mod poseidon_permutation {
 
     #[test]
     fn ark_test() {
-        let mut constants = read_constants_bls12381_Fq_n255_t5_alpha5_M128_RF8_RP56();
-        let mut state: Vec<Fqbls12_381> = Vec::new();
-        let mut result: Vec<Fqbls12_381> = Vec::new();
+        let mut constants = read_constants_bls12381_Fr_n255_t5_alpha5_M128_RF8_RP56();
+        let mut state: Vec<Frbls12_381> = Vec::new();
+        let mut result: Vec<Frbls12_381> = Vec::new();
         let mut rng = ark_std::test_rng();
 
         constants.c.clear();
 
         for i in 0..constants.t {
-            state.push(Fqbls12_381::rand(&mut rng));
-            constants.c.push(Fqbls12_381::rand(&mut rng));
+            state.push(Frbls12_381::rand(&mut rng));
+            constants.c.push(Frbls12_381::rand(&mut rng));
             result.push(state[i] + constants.c[i]);
         }
 
