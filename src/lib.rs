@@ -209,4 +209,20 @@ mod poseidon_permutation {
         ark(&mut state, &constants, 0);
         assert_eq!(state, result);
     }
+
+    #[test]
+    fn readme_example_digest() {
+        let constants = read_constants_bls12381_Fr_n255_t5_alpha5_M128_RF8_RP56();
+        let input = vec![
+            Frbls12_381::from(1_u64),
+            Frbls12_381::from(2_u64),
+            Frbls12_381::from(3_u64),
+        ];
+        let output = hash(&input, &constants, 1, 3);
+
+        assert_eq!(
+            output[0].to_string(),
+            "35749691652817681892908057964048881583928194394669750191375048829827770765536"
+        );
+    }
 }
